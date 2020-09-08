@@ -1,0 +1,69 @@
+﻿Winter 2021 Data Science Intern Challenge 
+
+
+Please complete the following questions, and provide your thought process/work. You can attach your work in a text file, link, etc. on the application page. Please ensure answers are easily visible for reviewers!
+
+
+
+
+Question 1: Given some sample data, write a program to answer the following: click here to access the required data set
+
+
+On Shopify, we have exactly 100 sneaker shops, and each of these shops sells only one model of shoe. We want to do some analysis of the average order value (AOV). When we look at orders data over a 30 day window, we naively calculate an AOV of $3145.13. Given that we know these shops are selling sneakers, a relatively affordable item, something seems wrong with our analysis. 
+
+
+1. Think about what could be going wrong with our calculation. Think about a better way to evaluate this data. 
+2. What metric would you report for this dataset?
+3. What is its value?
+
+
+
+
+Question 2: For this question you’ll need to use SQL. Follow this link to access the data set required for the challenge. Please use queries to answer the following questions. Paste your queries along with your final numerical answers below.
+
+
+1. How many orders were shipped by Speedy Express in total?
+
+SELECT COUNT(*) AS SpeedyExpressNum
+FROM Orders
+JOIN Shippers
+    ON Shippers.ShipperID = Orders.ShipperID
+WHERE Shippers.ShipperName = 'Speedy Express'
+
+2. What is the last name of the employee with the most orders?
+
+SELECT LastName,most_freq_order AS NumberOfOrders
+FROM (
+	(SELECT EmployeeID, MAX(sales) AS most_freq_order
+	FROM (
+		SELECT  EmployeeID, Count(OrderID) AS sales
+		FROM    Orders
+		GROUP BY  EmployeeID
+ 		)
+      ) AS t1
+ 	JOIN
+   (SELECT  EmployeeID, LastName 
+      FROM    Employees
+  	) AS t2
+	ON t1.EmployeeID == t2.EmployeeID
+)
+
+3. What product was ordered the most by customers in Germany?
+
+SELECT ProductName,Most_Freq.most_freq_order As TotalOrder
+FROM Products
+JOIN
+(SELECT ProductID, MAX(TotalQantity) AS most_freq_order
+	FROM
+  (SELECT ProductID,SUM(Quantity) as TotalQantity
+  FROM OrderDetails
+  JOIN
+  (SELECT Orders.OrderID, Customers.Country
+  FROM Orders
+  JOIN Customers
+      ON Customers.CustomerID = Orders.CustomerID
+  WHERE Customers.Country = 'Germany') AS t1
+  ON OrderDetails.OrderID == t1.OrderID
+  GROUP BY  ProductID
+  ))as Most_Freq
+ON Products.ProductID = Most_Freq.ProductID
